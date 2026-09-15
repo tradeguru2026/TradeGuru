@@ -1,11 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 
-const notifications = require('./routes/notifications');
-const news = require('./routes/news');
-const watchlist = require('./routes/watchlist');
-const portfolio = require('./routes/portfolio');
-const challenge = require('./routes/challenge');
+const notifications = require('./notifications');
+const news = require('./news');
+const watchlist = require('./watchlist');
+const portfolio = require('./portfolio');
+const challenge = require('./challenge');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
