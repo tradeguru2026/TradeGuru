@@ -1,0 +1,18 @@
+async function loadChallenge() {
+      const box = document.getElementById("challenge");
+      box.innerText = "Loading...";
+
+      try {
+        const data = await getData("/api/challenge");
+        box.innerText = JSON.stringify(data, null, 2);
+      } catch (error) {
+        box.innerText = "Challenge could not be loaded.";
+      }
+    }
+
+    checkAPI();
+
+  </script>
+
+</body>
+</html>
