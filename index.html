@@ -1,18 +1,201 @@
-async function loadChallenge() {
-      const box = document.getElementById("challenge");
-      box.innerText = "Loading...";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeGuru</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#0b1220;color:#fff}
+header{padding:20px;background:#111b2e;position:sticky;top:0;z-index:5}
+.logo{font-size:28px;font-weight:bold;color:#35d07f}
+.sub{color:#9aa7bd;margin-top:5px}
+main{padding:16px;max-width:700px;margin:auto}
+.card{background:#141f33;border:1px solid #26344d;border-radius:16px;padding:18px;margin-bottom:14px}
+.balance{font-size:32px;font-weight:bold;margin:8px 0}
+.green{color:#35d07f}.red{color:#ff6577}.muted{color:#9aa7bd}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:0;border-radius:10px;padding:12px 15px;background:#35d07f;color:#06110b;font-weight:bold}
+nav{position:fixed;bottom:0;left:0;right:0;background:#111b2e;border-top:1px solid #26344d;display:flex;justify-content:space-around;padding:10px 4px;z-index:10}
+nav button{background:transparent;color:#aebbd0;padding:8px;font-size:12px}
+nav button.active{color:#35d07f}
+section{display:none;padding-bottom:75px}
+section.active{display:block}
+.item{padding:14px 0;border-bottom:1px solid #26344d}
+.price{float:right;font-weight:bold}
+.badge{display:inline-block;background:#26344d;padding:5px 9px;border-radius:20px;font-size:12px}
+h2{margin-top:5px}
+</style>
+</head>
 
-      try {
-        const data = await getData("/api/challenge");
-        box.innerText = JSON.stringify(data, null, 2);
-      } catch (error) {
-        box.innerText = "Challenge could not be loaded.";
-      }
-    }
+<body>
 
-    checkAPI();
+<header>
+<div class="logo">TradeGuru</div>
+<div class="sub">Smart Stock Market Learning & Paper Trading</div>
+</header>
 
-  </script>
+<main>
+
+<section id="home" class="active">
+<div class="card">
+<span class="muted">Portfolio Value</span>
+<div class="balance" id="portfolioValue">Loading...</div>
+<div id="pnl" class="green"></div>
+</div>
+
+<div class="grid">
+<div class="card">
+<span class="muted">Available</span>
+<h2 id="available">₹--</h2>
+</div>
+<div class="card">
+<span class="muted">Invested</span>
+<h2 id="invested">₹--</h2>
+</div>
+</div>
+
+<div class="card">
+<h2>Market Learning</h2>
+<p class="muted">Learn trading, risk management and paper trading without using real money.</p>
+<button onclick="show('challenge')">Start Challenge</button>
+</div>
+</section>
+
+<section id="watchlist">
+<h2>Watchlist</h2>
+<div class="card" id="watchlistBox">Loading...</div>
+</section>
+
+<section id="portfolio">
+<h2>My Portfolio</h2>
+<div class="card" id="portfolioBox">Loading...</div>
+</section>
+
+<section id="news">
+<h2>Market News</h2>
+<div class="card" id="newsBox">Loading...</div>
+</section>
+
+<section id="challenge">
+<h2>Trading Challenge</h2>
+<div class="card">
+<div class="muted">Virtual Capital</div>
+<h1 id="challengeCapital">₹10,00,000</h1>
+<p>Status: <span id="challengeStatus" class="badge">Loading</span></p>
+<p>Score: <b id="challengeScore">0</b></p>
+<p>Trades: <b id="challengeTrades">0</b></p>
+<button onclick="startChallenge()">Start Challenge</button>
+</div>
+</section>
+
+<section id="notifications">
+<h2>Notifications</h2>
+<div class="card" id="notificationBox">Loading...</div>
+</section>
+
+</main>
+
+<nav>
+<button class="active" onclick="show('home',this)">🏠<br>Home</button>
+<button onclick="show('watchlist',this)">⭐<br>Watchlist</button>
+<button onclick="show('portfolio',this)">💼<br>Portfolio</button>
+<button onclick="show('news',this)">📰<br>News</button>
+<button onclick="show('challenge',this)">🎯<br>Challenge</button>
+</nav>
+
+<script>
+const API="https://tradeguru-3shm.onrender.com";
+
+async function getData(path){
+ const r=await fetch(API+path);
+ if(!r.ok) throw new Error("API error");
+ return await r.json();
+}
+
+function money(n){
+ return "₹"+Number(n||0).toLocaleString("en-IN");
+}
+
+function show(id,btn){
+ document.querySelectorAll("section").forEach(x=>x.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+ if(btn) btn.classList.add("active");
+}
+
+async function loadPortfolio(){
+ try{
+  const d=await getData("/api/portfolio");
+  document.getElementById("portfolioValue").innerText=money(d.value);
+  document.getElementById("available").innerText=money(d.available);
+  document.getElementById("invested").innerText=money(d.invested);
+  document.getElementById("pnl").innerText="Today's P&L: "+money(d.todayPnL);
+  document.getElementById("portfolioBox").innerHTML=
+   "<b>Portfolio Value:</b> "+money(d.value)+
+   "<br><br><b>Total P&L:</b> "+money(d.totalPnL)+
+   "<br><br><span class='muted'>Holdings: "+d.holdings.length+"</span>";
+ }catch(e){
+  document.getElementById("portfolioValue").innerText="API unavailable";
+ }
+}
+
+async function loadWatchlist(){
+ try{
+  const d=await getData("/api/watchlist");
+  document.getElementById("watchlistBox").innerHTML=d.map(x=>
+   `<div class="item"><b>${x.symbol}</b><br><span class="muted">${x.name}</span><span class="price">${money(x.price)}</span></div>`
+  ).join("");
+ }catch(e){
+  document.getElementById("watchlistBox").innerText="Could not load watchlist.";
+ }
+}
+
+async function loadNews(){
+ try{
+  const d=await getData("/api/news");
+  document.getElementById("newsBox").innerHTML=d.map(x=>
+   `<div class="item"><span class="badge">${x.category}</span><h3>${x.title}</h3><p class="muted">${x.summary}</p></div>`
+  ).join("");
+ }catch(e){
+  document.getElementById("newsBox").innerText="Could not load news.";
+ }
+}
+
+async function loadChallenge(){
+ try{
+  const d=await getData("/api/challenge");
+  document.getElementById("challengeCapital").innerText=money(d.virtualCapital);
+  document.getElementById("challengeStatus").innerText=d.started?"Started":"Not Started";
+  document.getElementById("challengeScore").innerText=d.score;
+  document.getElementById("challengeTrades").innerText=d.trades;
+ }catch(e){}
+}
+
+async function startChallenge(){
+ try{
+  const r=await fetch(API+"/api/challenge/start",{method:"POST"});
+  if(r.ok) loadChallenge();
+ }catch(e){}
+}
+
+async function loadNotifications(){
+ try{
+  const d=await getData("/api/notifications");
+  document.getElementById("notificationBox").innerHTML=d.map(x=>
+   `<div class="item"><b>${x.title}</b><p class="muted">${x.message}</p></div>`
+  ).join("");
+ }catch(e){
+  document.getElementById("notificationBox").innerText="Could not load notifications.";
+ }
+}
+
+loadPortfolio();
+loadWatchlist();
+loadNews();
+loadChallenge();
+loadNotifications();
+</script>
 
 </body>
 </html>
