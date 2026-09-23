@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeGuru</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f4f6f8;
+      color: #17202a;
+    }
+
+    .header {
+      background: #111827;
+      color: white;
+      padding: 18px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: bold;
+    }
+
+    .tagline {
+      font-size: 12px;
+      margin-top: 4px;
+      color: #cbd5e1;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    .search {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 15px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+    }
+
+    .stock-name {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .symbol {
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .price {
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 12px;
+    }
+
+    .change {
+      margin-top: 5px;
+      font-weight: bold;
+    }
+
+    .positive {
+      color: #16a34a;
+    }
+
+    .negative {
+      color: #dc2626;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button {
+      flex: 1;
+      border: none;
+      padding: 14px;
+      border-radius: 9px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .buy {
+      background: #16a34a;
+    }
+
+    .sell {
+      background: #dc2626;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 20px 0 10px;
+    }
+
+    .status {
+      background: #ecfdf5;
+      color: #15803d;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 25px 10px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .notice {
+      background: #fff7ed;
+      color: #9a3412;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <div class="logo">📈 TradeGuru</div>
+    <div class="tagline">Smart trading dashboard</div>
+  </div>
+
+  <div class="container">
+
+    <input
+      class="search"
+      type="text"
+      id="search"
+      placeholder="Search stock e.g. Reliance"
+      onkeyup="searchStock()"
+    >
+
+    <div class="status">
+      ● Trading API: Ready &nbsp; | &nbsp; Mode: PAPER
+    </div>
+
+    <div id="stockList">
+
+      <div class="card stock" data-name="Reliance">
+        <div class="stock-name">Reliance Industries</div>
+        <div class="symbol">RELIANCE</div>
+        <div class="price">₹1,420.00</div>
+        <div class="change positive">+1.25%</div>
+
+        <div class="buttons">
+          <button class="buy" onclick="trade('BUY','Reliance Industries')">
+            BUY
+          </button>
+
+          <button class="sell" onclick="trade('SELL','Reliance Industries')">
+            SELL
+          </button>
+        </div>
+      </div>
+
+      <div class="card stock" data-name="TCS">
+        <div class="stock-name">Tata Consultancy Services</div>
+        <div class="symbol">TCS</div>
+        <div class="price">₹3,120.00</div>
+        <div class="change positive">+0.84%</div>
+
+        <div class="buttons">
+          <button class="buy" onclick="trade('BUY','TCS')">
+            BUY
+          </button>
+
+          <button class="sell" onclick="trade('SELL','TCS')">
+            SELL
+          </button>
+        </div>
+      </div>
+
+      <div class="card stock" data-name="Infosys">
+        <div class="stock-name">Infosys</div>
+        <div class="symbol">INFY</div>
+        <div class="price">₹1,540.00</div>
+        <div class="change negative">-0.42%</div>
+
+        <div class="buttons">
+          <button class="buy" onclick="trade('BUY','Infosys')">
+            BUY
+          </button>
+
+          <button class="sell" onclick="trade('SELL','Infosys')">
+            SELL
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-title">
+      Quick Info
+    </div>
+
+    <div class="card">
+      <p>📊 Market Watch</p>
+      <p style="margin-top:8px;">Stocks available for paper trading.</p>
+    </div>
+
+    <div class="notice">
+      ⚠️ Paper trading mode is active. Orders shown here are for testing and do not use real money.
+    </div>
+
+  </div>
+
+  <div class="footer">
+    © 2026 TradeGuru
+  </div>
+
+  <script>
+
+    function searchStock() {
+      const input = document
+        .getElementById("search")
+        .value
+        .toLowerCase();
+
+      const stocks = document.querySelectorAll(".stock");
+
+      stocks.forEach(function(stock) {
+
+        const name = stock
+          .getAttribute("data-name")
+          .toLowerCase();
+
+        if (name.includes(input)) {
+          stock.style.display = "block";
+        } else {
+          stock.style.display = "none";
+        }
+
+      });
+    }
+
+    function trade(type, stock) {
+
+      if (type === "BUY") {
+        alert("BUY order selected for " + stock + " (Paper Trading)");
+      }
+
+      if (type === "SELL") {
+        alert("SELL order selected for " + stock + " (Paper Trading)");
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>
