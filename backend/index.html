@@ -79,19 +79,6 @@
       margin-top: 12px;
     }
 
-    .change {
-      margin-top: 5px;
-      font-weight: bold;
-    }
-
-    .positive {
-      color: #16a34a;
-    }
-
-    .negative {
-      color: #dc2626;
-    }
-
     .buttons {
       display: flex;
       gap: 10px;
@@ -132,13 +119,6 @@
       margin-bottom: 15px;
     }
 
-    .footer {
-      text-align: center;
-      padding: 25px 10px;
-      color: #64748b;
-      font-size: 12px;
-    }
-
     .notice {
       background: #fff7ed;
       color: #9a3412;
@@ -146,6 +126,19 @@
       border-radius: 10px;
       margin-top: 15px;
       font-size: 13px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 25px 10px;
+      color: #64748b;
+      font-size: 12px;
     }
   </style>
 </head>
@@ -168,62 +161,11 @@
     >
 
     <div class="status">
-      ● Trading API: Ready &nbsp; | &nbsp; Mode: PAPER
+      ● Trading API: Connected &nbsp; | &nbsp; Mode: PAPER
     </div>
 
     <div id="stockList">
-
-      <div class="card stock" data-name="Reliance">
-        <div class="stock-name">Reliance Industries</div>
-        <div class="symbol">RELIANCE</div>
-        <div class="price">₹1,420.00</div>
-        <div class="change positive">+1.25%</div>
-
-        <div class="buttons">
-          <button class="buy" onclick="trade('BUY','Reliance Industries')">
-            BUY
-          </button>
-
-          <button class="sell" onclick="trade('SELL','Reliance Industries')">
-            SELL
-          </button>
-        </div>
-      </div>
-
-      <div class="card stock" data-name="TCS">
-        <div class="stock-name">Tata Consultancy Services</div>
-        <div class="symbol">TCS</div>
-        <div class="price">₹3,120.00</div>
-        <div class="change positive">+0.84%</div>
-
-        <div class="buttons">
-          <button class="buy" onclick="trade('BUY','TCS')">
-            BUY
-          </button>
-
-          <button class="sell" onclick="trade('SELL','TCS')">
-            SELL
-          </button>
-        </div>
-      </div>
-
-      <div class="card stock" data-name="Infosys">
-        <div class="stock-name">Infosys</div>
-        <div class="symbol">INFY</div>
-        <div class="price">₹1,540.00</div>
-        <div class="change negative">-0.42%</div>
-
-        <div class="buttons">
-          <button class="buy" onclick="trade('BUY','Infosys')">
-            BUY
-          </button>
-
-          <button class="sell" onclick="trade('SELL','Infosys')">
-            SELL
-          </button>
-        </div>
-      </div>
-
+      <div class="loading">Loading stocks...</div>
     </div>
 
     <div class="section-title">
@@ -232,11 +174,13 @@
 
     <div class="card">
       <p>📊 Market Watch</p>
-      <p style="margin-top:8px;">Stocks available for paper trading.</p>
+      <p style="margin-top:8px;">
+        TradeGuru watchlist is connected to the API.
+      </p>
     </div>
 
     <div class="notice">
-      ⚠️ Paper trading mode is active. Orders shown here are for testing and do not use real money.
+      ⚠️ Paper trading mode is active. Orders shown here do not use real money.
     </div>
 
   </div>
@@ -247,40 +191,133 @@
 
   <script>
 
+    let stocks = [];
+
+    async function loadStocks() {
+
+      try {
+
+        const response = await fetch('/api/watchlist');
+
+        if (!response.ok) {
+          throw new Error('API error');
+        }
+
+        stocks = await response.json();
+
+        displayStocks(stocks);
+
+      } catch (error) {
+
+        document.getElementById('stockList').innerHTML =
+          '<div class="card">Unable to load watchlist.</div>';
+
+      }
+
+    }
+
+    function displayStocks(list) {
+
+      const stockList = document.getElementById('stockList');
+
+      if (!list.length) {
+        stockList.innerHTML =
+          '<div class="card">No stocks in watchlist.</div>';
+        return;
+      }
+
+      stockList.innerHTML = '';
+
+      list.forEach(function(stock) {
+
+        const card = document.createElement('div');
+
+        card.className = 'card stock';
+
+        card.setAttribute(
+          'data-name',
+          stock.name || stock.symbol || ''
+        );
+
+        const price =
+          typeof stock.price === 'number'
+            ? stock.price
+            : Number(stock.price || 0);
+
+        card.innerHTML = `
+          <div class="stock-name">
+            ${stock.name || 'Unknown Stock'}
+          </div>
+
+          <div class="symbol">
+            ${stock.symbol || ''}
+          </div>
+
+          <div class="price">
+            ₹${price.toLocaleString('en-IN', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}
+          </div>
+
+          <div class="buttons">
+
+            <button
+              class="buy"
+              onclick="trade('BUY', '${stock.symbol || stock.name}')">
+              BUY
+            </button>
+
+            <button
+              class="sell"
+              onclick="trade('SELL', '${stock.symbol || stock.name}')">
+              SELL
+            </button>
+
+          </div>
+        `;
+
+        stockList.appendChild(card);
+
+      });
+
+    }
+
     function searchStock() {
+
       const input = document
-        .getElementById("search")
+        .getElementById('search')
         .value
         .toLowerCase();
 
-      const stocks = document.querySelectorAll(".stock");
+      const filtered = stocks.filter(function(stock) {
 
-      stocks.forEach(function(stock) {
+        const name =
+          (stock.name || '').toLowerCase();
 
-        const name = stock
-          .getAttribute("data-name")
-          .toLowerCase();
+        const symbol =
+          (stock.symbol || '').toLowerCase();
 
-        if (name.includes(input)) {
-          stock.style.display = "block";
-        } else {
-          stock.style.display = "none";
-        }
+        return name.includes(input) ||
+               symbol.includes(input);
 
       });
+
+      displayStocks(filtered);
+
     }
 
     function trade(type, stock) {
 
-      if (type === "BUY") {
-        alert("BUY order selected for " + stock + " (Paper Trading)");
-      }
-
-      if (type === "SELL") {
-        alert("SELL order selected for " + stock + " (Paper Trading)");
-      }
+      alert(
+        type + ' order selected for ' +
+        stock +
+        ' (Paper Trading)'
+      );
 
     }
+
+    loadStocks();
 
   </script>
 
